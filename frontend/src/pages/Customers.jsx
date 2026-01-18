@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getUsers } from "../api/userApi";
 import {
   getCustomers,
   createCustomer,
@@ -12,19 +11,26 @@ function Customers() {
   const [customers, setCustomers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [users, setUsers] = useState([]);
 
   const loadCustomers = async () => {
-    const res = await getCustomers();
-    setCustomers(res.data);
+    try {
+      const res = await getCustomers();
+      setCustomers(res.data || []);
+    } catch (err) {
+      console.error("Failed to load customers");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await createCustomer({ name, email });
-    setName("");
-    setEmail("");
-    loadCustomers();
+    try {
+      await createCustomer({ name, email });
+      setName("");
+      setEmail("");
+      loadCustomers();
+    } catch {
+      alert("Failed to create customer");
+    }
   };
 
   const handleStatusChange = async (id, status) => {
@@ -33,13 +39,13 @@ function Customers() {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Delete this customer?")) return;
     await deleteCustomer(id);
     loadCustomers();
   };
 
   useEffect(() => {
     loadCustomers();
-    getUsers().then((res) => setUsers(res.data));
   }, []);
 
   return (
@@ -49,7 +55,6 @@ function Customers() {
       <div className="app-container">
         <h2 className="page-title">Customers</h2>
 
-        {/* CREATE CUSTOMER */}
         <form className="customer-form" onSubmit={handleSubmit}>
           <input
             placeholder="Customer Name"
@@ -70,15 +75,12 @@ function Customers() {
 
         <hr />
 
-        {/* CUSTOMER LIST */}
         <div className="customer-list">
           {customers.map((c) => (
             <div key={c._id} className="customer-card">
               <p>
                 <strong>{c.name}</strong> ({c.email})
               </p>
-
-              <p>Status: {c.status}</p>
 
               <select
                 value={c.status}

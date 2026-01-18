@@ -4,12 +4,14 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// 🔹 CREATE CUSTOMER
+/* =======================
+   CREATE CUSTOMER
+======================= */
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const customer = new Customer({
       ...req.body,
-      createdBy: req.user.id // 👈 IMPORTANT
+      createdBy: req.user.id,
     });
 
     await customer.save();
@@ -19,18 +21,18 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// 🔹 GET CUSTOMERS (admin → all, member → own)
+/* =======================
+   GET CUSTOMERS
+======================= */
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    let customers;
+    const filter =
+      req.user.role === "admin"
+        ? {}
+        : { createdBy: req.user.id };
 
-    if (req.user.role === "admin") {
-      customers = await Customer.find()
-        .populate("assignedTo", "name email");
-    } else {
-      customers = await Customer.find({ createdBy: req.user.id })
-        .populate("assignedTo", "name email");
-    }
+    const customers = await Customer.find(filter)
+      .populate("assignedTo", "name email");
 
     res.json(customers);
   } catch (err) {
@@ -38,24 +40,51 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// 🔹 UPDATE CUSTOMER
+/* =======================
+   UPDATE CUSTOMER
+======================= */
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    const customer = await Customer.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ msg: "Customer not found" });
+    }
+
+    // Members can update only their own customers
+    if (
+      req.user.role !== "admin" &&
+      customer.createdBy.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+
+    Object.assign(customer, req.body);
+    await customer.save();
+
     res.json(customer);
   } catch (err) {
     res.status(500).json({ msg: "Error updating customer" });
   }
 });
 
-// 🔹 DELETE CUSTOMER
+/* =======================
+   DELETE CUSTOMER
+======================= */
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ msg: "Customer not found" });
+    }
+
+    if (
+      req.user.role !== "admin" &&
+      customer.createdBy.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+
+    await customer.deleteOne();
     res.json({ msg: "Customer deleted" });
   } catch (err) {
     res.status(500).json({ msg: "Error deleting customer" });

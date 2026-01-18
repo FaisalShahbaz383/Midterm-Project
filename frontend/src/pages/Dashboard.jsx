@@ -15,7 +15,7 @@ function Dashboard() {
 
   useEffect(() => {
     getCustomers().then((res) => {
-      const customers = res.data;
+      const customers = res.data || [];
 
       setStats({
         total: customers.length,
@@ -37,40 +37,12 @@ function Dashboard() {
         <h2 className="page-title">Dashboard</h2>
 
         <div className="dashboard-grid">
-          <div className="stat-card">
-            <h3>Total Customers</h3>
-            <p>{stats.total}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>New</h3>
-            <p>{stats.new}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>Contacted</h3>
-            <p>{stats.contacted}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>In Progress</h3>
-            <p>{stats.inProgress}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>Closed</h3>
-            <p>{stats.closed}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>Assigned</h3>
-            <p>{stats.assigned}</p>
-          </div>
-
-          <div className="stat-card">
-            <h3>Unassigned</h3>
-            <p>{stats.unassigned}</p>
-          </div>
+          {Object.entries(stats).map(([key, value]) => (
+            <div className="stat-card" key={key}>
+              <h3>{key.replace(/([A-Z])/g, " $1")}</h3>
+              <p>{value}</p>
+            </div>
+          ))}
         </div>
       </div>
     </>
