@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import authMiddleware from "../middleware/authMiddleware.js"; // ✅ FIX
 import roleMiddleware from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
@@ -25,7 +26,7 @@ router.post(
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      const userRole = role === "admin" ? "admin" : "member";
+      const userRole = role === "admin" ? "admin" : "employee";
 
       const newUser = new User({
         name,
@@ -70,10 +71,7 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-      },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
