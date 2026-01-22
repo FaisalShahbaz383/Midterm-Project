@@ -24,19 +24,18 @@ router.post("/", authMiddleware, async (req, res) => {
 /* =======================
    GET CUSTOMERS
 ======================= */
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/:id", authMiddleware, async (req, res) => {
   try {
-    const filter =
-      req.user.role === "admin"
-        ? {}
-        : { createdBy: req.user.id };
+    const customer = await Customer.findById(req.params.id);
 
-    const customers = await Customer.find(filter)
-      .populate("assignedTo", "name email");
+    if (!customer) {
+      return res.status(404).json({ msg: "Customer not found" });
+    }
 
-    res.json(customers);
+    res.json(customer);
   } catch (err) {
-    res.status(500).json({ msg: "Error fetching customers" });
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
   }
 });
 

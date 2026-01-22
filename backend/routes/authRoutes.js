@@ -1,21 +1,61 @@
 import express from "express";
-import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import authMiddleware from "../middleware/authMiddleware.js"; // ✅ FIX
+import User from "../models/User.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-/* =========================
-   REGISTER USER (ADMIN ONLY)
-   ========================= */
+/* =====================================
+   REGISTER FIRST ADMIN (NO AUTH REQUIRED)
+   ===================================== */
+router.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    // Check if admin already exists
+    const adminExists = await User.findOne({ role: "admin" });
+    if (adminExists) {
+      return res
+        .status(403)
+        .json({ msg: "Admin already exists. Login instead." });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const admin = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    await admin.save();
+
+    res.status(201).json({
+      msg: "Admin registered successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+/* =====================================
+   REGISTER EMPLOYEE (ADMIN ONLY)
+   ===================================== */
 router.post(
-  "/register",
+  "/register-employee",
   authMiddleware,
   roleMiddleware(["admin"]),
   async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     try {
       const existingUser = await User.findOne({ email });
@@ -23,27 +63,24 @@ router.post(
         return res.status(400).json({ msg: "User already exists" });
       }
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-      const userRole = role === "admin" ? "admin" : "employee";
-
-      const newUser = new User({
+      const employee = new User({
         name,
         email,
         password: hashedPassword,
-        role: userRole,
+        role: "employee",
       });
 
-      await newUser.save();
+      await employee.save();
 
       res.status(201).json({
-        msg: "User created successfully",
+        msg: "Employee registered successfully",
         user: {
-          id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
+          id: employee._id,
+          name: employee.name,
+          email: employee.email,
+          role: employee.role,
         },
       });
     } catch (err) {
