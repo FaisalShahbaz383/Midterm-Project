@@ -22,20 +22,23 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 /* =======================
-   GET CUSTOMERS
+   GET ALL CUSTOMERS
 ======================= */
-router.get("/:id", authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    let customers;
 
-    if (!customer) {
-      return res.status(404).json({ msg: "Customer not found" });
+    if (req.user.role === "admin") {
+      // Admin sees all customers
+      customers = await Customer.find();
+    } else {
+      // Employee sees only their customers
+      customers = await Customer.find({ createdBy: req.user.id });
     }
 
-    res.json(customer);
+    res.json(customers);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ msg: "Error fetching customers" });
   }
 });
 
