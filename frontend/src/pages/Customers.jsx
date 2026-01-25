@@ -7,10 +7,13 @@ import {
   deleteCustomer,
 } from "../api/customerApi";
 
+const ITEMS_PER_PAGE = 5;
+
 function Customers() {
   const [customers, setCustomers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadCustomers = async () => {
     try {
@@ -28,6 +31,8 @@ function Customers() {
       setName("");
       setEmail("");
       loadCustomers();
+      // Move to last page when new customer is added
+      setCurrentPage(Math.ceil((customers.length + 1) / ITEMS_PER_PAGE));
     } catch {
       alert("Failed to create customer");
     }
@@ -47,6 +52,14 @@ function Customers() {
   useEffect(() => {
     loadCustomers();
   }, []);
+
+  // Pagination logic
+  const totalPages = Math.ceil(customers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentCustomers = customers.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   return (
     <>
@@ -76,7 +89,7 @@ function Customers() {
         <hr />
 
         <div className="customer-list">
-          {customers.map((c) => (
+          {currentCustomers.map((c) => (
             <div key={c._id} className="customer-card">
               <p>
                 <strong>{c.name}</strong> ({c.email})
@@ -100,6 +113,33 @@ function Customers() {
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  style={{
+                    margin: "0 5px",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    background:
+                      currentPage === page ? "#2563eb" : "#e5e7eb",
+                    color:
+                      currentPage === page ? "#fff" : "#000",
+                  }}
+                >
+                  {page}
+                </button>
+              )
+            )}
+          </div>
+        )}
       </div>
     </>
   );
