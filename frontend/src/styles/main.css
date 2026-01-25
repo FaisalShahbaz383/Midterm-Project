@@ -9,7 +9,7 @@
 
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background-color: #0f172a; /* dark base */
+  background-color: #354d85; /* dark base */
   color: #e5e7eb;
 }
 
@@ -37,7 +37,7 @@ a {
    NAVBAR (if any)
 ====================== */
 .navbar {
-  background: #1e293b;
+  background: #729ada;
   padding: 15px 25px;
   color: white;
   display: flex;
@@ -119,7 +119,7 @@ a {
 
 .stat-card h3 {
   font-size: 14px;
-  color: #555;
+  color: #000000;
 }
 
 .stat-card p {
