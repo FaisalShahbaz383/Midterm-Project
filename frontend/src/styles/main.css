@@ -9,8 +9,8 @@
 
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background-color: #f4f6f8;
-  color: #333;
+  background-color: #0f172a; /* dark base */
+  color: #e5e7eb;
 }
 
 a {
@@ -58,14 +58,16 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: linear-gradient(135deg, #020617, #0f172a);
 }
 
 .login-box {
-  background: white;
+  background: #020617;
   padding: 30px;
   width: 350px;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  color: #e5e7eb;
 }
 
 .login-box h2 {
@@ -77,8 +79,10 @@ a {
   width: 100%;
   padding: 10px;
   margin-bottom: 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
 }
 
 .login-box button {
